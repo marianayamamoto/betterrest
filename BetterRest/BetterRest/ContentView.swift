@@ -5,6 +5,7 @@
 //  Created by Mariana Yamamoto on 9/1/21.
 //
 
+import Combine
 import SwiftUI
 
 struct ContentView: View {
@@ -19,45 +20,57 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             Form {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("When do you want to wake up?")
-                        .font(.headline)
-
+                Section(header: Text("When do you want to wake up?")) {
                     DatePicker("Please enter a time", selection: $wakeUp, displayedComponents: .hourAndMinute)
                         .labelsHidden()
                         .datePickerStyle(WheelDatePickerStyle())
+                        .onReceive(Just(wakeUp)) { _ in
+                            self.calculateBedtime()
+                        }
                 }
 
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Desired amount of sleep")
-                        .font(.headline)
+                Section(header: Text("Desired amount of sleep")) {
                     Stepper(value: $sleepAmount, in: 4...12, step: 0.25) {
                         Text("\(sleepAmount, specifier: "%g") hours")
                     }
+                    .onReceive(Just(wakeUp)) { _ in
+                        self.calculateBedtime()
+                    }
                 }
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Daily coffee intake")
-                        .font(.headline)
-                    Stepper(value: $coffeeAmount, in: 1...20) {
-                        if coffeeAmount == 1 {
-                            Text("1 cup")
-                        } else {
-                            Text("\(coffeeAmount) cups")
+                Section(header: Text("Daily coffee intake")) {
+                    Picker("Coffee Cups", selection: $coffeeAmount) {
+                        ForEach(1 ..< 21) {
+                            Text("\($0)")
                         }
                     }
+                    .onReceive(Just(wakeUp)) { _ in
+                        self.calculateBedtime()
+                    }
+//                    Stepper(value: $coffeeAmount, in: 1...20) {
+//                        if coffeeAmount == 1 {
+//                            Text("1 cup")
+//                        } else {
+//                            Text("\(coffeeAmount) cups")
+//                        }
+//                    }
                 }
+
+                Text(alertTitle)
+                    .font(.headline)
+                Text(alertMessage)
+                    .font(.headline)
             }
             .navigationTitle("BetterRest")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: calculateBedtime) {
-                        Text("Calculate")
-                    }
-                }
-            }
-            .alert(isPresented: $showAlert) {
-                Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
-            }
+//            .toolbar {
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                    Button(action: calculateBedtime) {
+//                        Text("Calculate")
+//                    }
+//                }
+//            }
+//            .alert(isPresented: $showAlert) {
+//                Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+//            }
         }
     }
 
